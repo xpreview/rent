@@ -1,397 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Room Rental Register</title>
-  <style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Room Rental Register</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        h1 {
+            text-align: center;
+            font-size: 1.8em;
+            margin-top: 20px;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px #ccc;
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 0.9em;
+            box-sizing: border-box; /* Ensures padding doesn't increase total width */
+        }
+        button {
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 0 10px #ccc;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #007bff;
+            color: white;
+        }
+        .due {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Login/Profile Button */
+.auth-container {
+    position: absolute;
+    top: 5px;   /* Default for larger screens */
+    right: 5px; /* Default for larger screens */
+    z-index: 1000;
+}
+.auth-container button {
+    background: #28a745;
+    padding: 8px 15px;
+    font-size: 0.9em;
+}
+
+/* Adjustments for smaller screens (your existing media query) */
+@media screen and (max-width: 600px) {
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f0f2f5;
+        padding: 10px;
     }
     h1 {
-      text-align: center;
-      font-size: 1.8em;
+        font-size: 1.4em;
+        /* Crucial: Increase the top margin of the h1 on mobile */
+        /* This pushes the title down, away from the fixed button */
+        margin-top: 40px; /* Adjust this value as needed, try 30px, 40px, or 50px */
     }
-    form {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px #ccc;
-      margin-bottom: 20px;
+    /* You might also slightly adjust the button's position for mobile if needed */
+    .auth-container {
+        top: 5px; /* Keep it high */
+        right: 5px; /* Keep it close to the edge */
     }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-top: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      font-size: 0.9em;
-    }
-    button {
-      margin-top: 10px;
-      padding: 6px 12px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    .auth-container button {
+        padding: 6px 12px; /* Make button slightly smaller on mobile */
+        font-size: 0.8em;
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      box-shadow: 0 0 10px #ccc;
-      font-size: 13px;
-      margin-bottom: 30px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    .due {
-      color: red;
-      font-weight: bold;
-    }
-
-    @media screen and (max-width: 600px) {
-      body {
-        padding: 10px;
-      }
-      h1 {
-        font-size: 1.4em;
-      }
-      table {
         font-size: 12px;
         overflow-x: auto;
         display: block;
         width: 100%;
         white-space: nowrap;
-      }
-      th, td {
-        padding: 8px;
-      }
-      input, button {
-        font-size: 0.8em;
-      }
     }
-  </style>
+    th, td {
+        padding: 8px;
+    }
+    input, button {
+        font-size: 0.8em;
+    }
+}
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1001; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-content h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .modal-content input {
+            margin-bottom: 10px;
+        }
+        .modal-content button {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .modal-content .switch-auth {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .modal-content .switch-auth a {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: -5px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        @media screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.4em;
+            }
+            table {
+                font-size: 12px;
+                overflow-x: auto;
+                display: block;
+                width: 100%;
+                white-space: nowrap;
+            }
+            th, td {
+                padding: 8px;
+            }
+            input, button {
+                font-size: 0.8em;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>📆 Room Rental Register</h1>
+    <div class="auth-container">
+        <button id="authButton">Login</button>
+    </div>
 
-  <form id="tenantForm">
-    <label>Tenant Name</label>
-    <input type="text" id="name" required />
-    <label>Room Number</label>
-    <input type="text" id="room" required />
-    <label>Monthly Rent (₹)</label>
-    <input type="number" id="rent" required />
-    <label>Electricity Rate (₹/unit)</label>
-    <input type="number" id="rate" required value="10" />
-    <label>Check-in Date</label>
-    <input type="date" id="checkin" required />
-    <button type="submit">Add Tenant</button>
-  </form>
+    <h1>📆 Room Rental Register</h1>
 
-  <div id="tenantList"></div>
+    <form id="tenantForm" style="display: none;">
+        <label>Tenant Name</label>
+        <input type="text" id="name" required />
+        <label>Room Number</label>
+        <input type="text" id="room" required />
+        <label>Monthly Rent (₹)</label>
+        <input type="number" id="rent" required />
+        <label>Electricity Rate (₹/unit)</label>
+        <input type="number" id="rate" required value="10" />
+        <label>Check-in Date</label>
+        <input type="date" id="checkin" required />
+        <button type="submit">Add Tenant</button>
+    </form>
 
-  <script>
-    const form = document.getElementById("tenantForm");
-    const tenantList = document.getElementById("tenantList");
-    let tenants = JSON.parse(localStorage.getItem("monthlyTenants") || "[]");
+    <div id="tenantList">
+        <p style="text-align: center; margin-top: 50px;">Please log in to manage your tenants.</p>
+    </div>
 
-    function saveData() {
-      localStorage.setItem("monthlyTenants", JSON.stringify(tenants));
-    }
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Login</h2>
+            <input type="email" id="authEmail" placeholder="Email" required />
+            <input type="password" id="authPassword" placeholder="Password" required />
+            <p id="authErrorMessage" class="error-message"></p>
+            <button id="authSubmitButton" onclick="handleAuthSubmit()">Login</button>
+            <div class="switch-auth">
+                <p id="switchAuthText">Don't have an account? <a onclick="toggleAuthMode()">Sign Up</a></p>
+            </div>
+            <button style="background: #dc3545;" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
 
-    function monthDiff(startDate, endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      let count = 0;
-      while (true) {
-        const next = new Date(start);
-        next.setMonth(start.getMonth() + count + 1);
-        if (next > end) break;
-        count++;
-      }
-      if (count === 0 && start.toDateString() === end.toDateString()) {
-        return 1;
-      }
-      return count;
-    }
-
-    function formatFullDate(base, offset) {
-      const d = new Date(base);
-      d.setMonth(d.getMonth() + offset + 1);
-      return d.toLocaleDateString("en-IN", { day: '2-digit', month: 'long', year: 'numeric' });
-    }
-
-    function getMonthKey(base, offset) {
-      const d = new Date(base);
-      d.setMonth(d.getMonth() + offset + 1);
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    }
-
-    function ensureAllMonths() {
-      const today = new Date();
-      tenants.forEach((tenant) => {
-        if (!tenant.monthlyData) tenant.monthlyData = {};
-        const checkin = new Date(tenant.checkin);
-        const total = monthDiff(checkin, today);
-        for (let i = 0; i < total; i++) {
-          const key = getMonthKey(checkin, i);
-          if (!tenant.monthlyData[key]) {
-            tenant.monthlyData[key] = {
-              rentPaid: false,
-              elecStart: "",
-              elecEnd: "",
-              elecPaid: false
-            };
-          }
-        }
-      });
-      saveData();
-    }
-
-    function renderTenants() {
-      tenantList.innerHTML = "";
-
-      tenants.forEach((tenant, index) => {
-        const div = document.createElement("div");
-        div.style.marginBottom = "30px";
-
-        const checkinDate = new Date(tenant.checkin);
-        const checkinText = checkinDate.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' });
-
-        const title = document.createElement("h3");
-        title.innerHTML = `🏠 ${tenant.name} | Room ${tenant.room}
-          <button onclick="deleteTenant(${index})" style="margin-left:20px; background:#dc3545; color:white; padding:4px 10px; border:none; border-radius:4px; font-size:12px; cursor:pointer;">Delete</button>`;
-        div.appendChild(title);
-
-        const table = document.createElement("table");
-        const thead = document.createElement("thead");
-        thead.innerHTML = `
-          <tr>
-            <th>Month<br><small>(Joined on ${checkinText})</small></th>
-            <th>Rent Paid?</th>
-            <th>Previous Unit</th>
-            <th>Current Unit</th>
-            <th>Units</th>
-            <th>Bill<br><small>(₹${tenant.rate}/unit)</small></th>
-            <th>Unit Bill Paid?</th>
-            <th>Total Paid?</th>
-          </tr>`;
-        table.appendChild(thead);
-
-        const tbody = document.createElement("tbody");
-        const checkin = new Date(tenant.checkin);
-        const today = new Date();
-        const totalMonths = monthDiff(checkin, today);
-
-        for (let i = 0; i < totalMonths; i++) {
-          const key = getMonthKey(checkin, i);
-          const label = formatFullDate(checkin, i);
-          const data = tenant.monthlyData[key] || {
-            rentPaid: false,
-            elecStart: "",
-            elecEnd: "",
-            elecPaid: false
-          };
-
-          const start = parseInt(data.elecStart || 0);
-          const end = parseInt(data.elecEnd || 0);
-          const units = Math.max(0, end - start);
-          const bill = units * tenant.rate;
-          const totalPaid = data.rentPaid && data.elecPaid;
-
-          let dueText = "";
-          if (!data.rentPaid) dueText = "Rent Due";
-          else if (!data.elecPaid) dueText = "Unit Bill Due";
-
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${label}</td>
-            <td>
-              <input type="checkbox" ${data.rentPaid ? "checked" : ""} 
-                onchange="togglePaid(${index}, '${key}', 'rentPaid', this.checked)">
-              <br><small>₹${tenant.rent}</small>
-            </td>
-            <td><input type="number" value="${data.elecStart}" data-i="${index}" data-month="${key}" data-key="elecStart" class="elecField"></td>
-            <td><input type="number" value="${data.elecEnd}" data-i="${index}" data-month="${key}" data-key="elecEnd" class="elecField"></td>
-            <td>${units}</td>
-            <td>₹${bill}</td>
-            <td><input type="checkbox" ${data.elecPaid ? "checked" : ""} 
-                onchange="togglePaid(${index}, '${key}', 'elecPaid', this.checked)"></td>
-            <td>
-              <input type="checkbox" ${totalPaid ? "checked" : ""} 
-                onchange="updateTotalPaid(${index}, '${key}', this.checked)">
-              <br><span class="${dueText ? 'due' : ''}">${dueText}</span>
-            </td>
-          `;
-          tbody.appendChild(row);
-        }
-
-        table.appendChild(tbody);
-        div.appendChild(table);
-        tenantList.appendChild(div);
-      });
-
-      bindInstantElectricityInputs();
-    }
-
-    function bindInstantElectricityInputs() {
-      document.querySelectorAll('.elecField').forEach(input => {
-        input.addEventListener('input', (e) => {
-          const i = parseInt(e.target.dataset.i);
-          const key = e.target.dataset.key;
-          const month = e.target.dataset.month;
-          const value = e.target.value;
-
-          tenants[i].monthlyData[month][key] = value;
-          saveData();
-
-          const data = tenants[i].monthlyData[month];
-          const start = parseInt(data.elecStart || 0);
-          const end = parseInt(data.elecEnd || 0);
-          const units = Math.max(0, end - start);
-          const bill = units * tenants[i].rate;
-
-          const rows = tenantList.querySelectorAll("div")[i].querySelectorAll("tbody tr");
-          rows.forEach(row => {
-            if (row.cells[0].innerText === formatFullDate(tenants[i].checkin, getMonthOffset(tenants[i].checkin, month))) {
-              row.cells[4].innerText = units;
-              row.cells[5].innerText = `₹${bill}`;
-            }
-          });
-        });
-      });
-    }
-
-    function getMonthOffset(checkin, monthKey) {
-      const check = new Date(checkin);
-      const [y, m] = monthKey.split('-').map(Number);
-      const date = new Date(y, m - 1);
-      let offset = 0;
-      while (true) {
-        const next = new Date(check);
-        next.setMonth(check.getMonth() + offset + 1);
-        if (next.getFullYear() === date.getFullYear() && next.getMonth() === date.getMonth()) break;
-        offset++;
-      }
-      return offset;
-    }
-
-    function togglePaid(index, month, key, checked) {
-      tenants[index].monthlyData[month][key] = checked;
-      saveData();
-
-      const data = tenants[index].monthlyData[month];
-      const totalPaid = data.rentPaid && data.elecPaid;
-      const dueText = !data.rentPaid ? "Rent Due" : (!data.elecPaid ? "Unit Bill Due" : "");
-
-      const rows = tenantList.querySelectorAll("div")[index].querySelectorAll("tbody tr");
-      rows.forEach(row => {
-        if (row.cells[0].innerText === formatFullDate(tenants[index].checkin, getMonthOffset(tenants[index].checkin, month))) {
-          row.cells[7].querySelector('input').checked = totalPaid;
-          row.cells[7].querySelector('span').innerText = dueText;
-          row.cells[7].querySelector('span').className = dueText ? 'due' : '';
-        }
-      });
-    }
-
-    function updateTotalPaid(index, month, checked) {
-      tenants[index].monthlyData[month].rentPaid = checked;
-      tenants[index].monthlyData[month].elecPaid = checked;
-      saveData();
-
-      const rows = tenantList.querySelectorAll("div")[index].querySelectorAll("tbody tr");
-      rows.forEach(row => {
-        if (row.cells[0].innerText === formatFullDate(tenants[index].checkin, getMonthOffset(tenants[index].checkin, month))) {
-          row.cells[1].querySelector('input').checked = checked;
-          row.cells[6].querySelector('input').checked = checked;
-          row.cells[7].querySelector('span').innerText = checked ? "" : "Rent Due";
-          row.cells[7].querySelector('span').className = checked ? "" : "due";
-        }
-      });
-    }
-
-    form.onsubmit = (e) => {
-      e.preventDefault();
-      const checkinValue = document.getElementById("checkin").value;
-      const today = new Date();
-      const checkinDate = new Date(checkinValue);
-      const isToday = checkinDate.toDateString() === today.toDateString();
-
-      const tenant = {
-        name: document.getElementById("name").value,
-        room: document.getElementById("room").value,
-        rent: parseInt(document.getElementById("rent").value),
-        rate: parseFloat(document.getElementById("rate").value),
-        checkin: checkinValue,
-        monthlyData: {}
-      };
-
-      if (isToday) {
-        const nextMonth = new Date(checkinDate);
-        nextMonth.setMonth(nextMonth.getMonth() + 1);
-        const key = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}`;
-        tenant.monthlyData[key] = {
-          rentPaid: false,
-          elecStart: "",
-          elecEnd: "",
-          elecPaid: false
+    <script>
+        // Your Firebase Configuration (replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYJvM_AVB-qLOE4-IqndoiSsB5Rg4dWqU",
+            authDomain: "roomrentsite.firebaseapp.com",
+            projectId: "roomrentsite",
+            storageBucket: "roomrentsite.firebasestorage.app",
+            messagingSenderId: "57419316279",
+            appId: "1:57419316279:web:91d8086985f625410c93b2"
         };
-      }
 
-      tenants.push(tenant);
-      saveData();
-      ensureAllMonths();
-      renderTenants();
-      form.reset();
-    };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        let currentUser = null; // To store the currently logged-in user
 
-    function deleteTenant(index) {
-      if (confirm("Are you sure you want to delete this tenant?")) {
-        tenants.splice(index, 1);
-        saveData();
-        renderTenants();
-      }
-    }
+        // --- UI Elements ---
+        const authButton = document.getElementById("authButton");
+        const loginModal = document.getElementById("loginModal");
+        const modalTitle = document.getElementById("modalTitle");
+        const authEmail = document.getElementById("authEmail");
+        const authPassword = document.getElementById("authPassword");
+        const authSubmitButton = document.getElementById("authSubmitButton");
+        const authErrorMessage = document.getElementById("authErrorMessage");
+        const switchAuthText = document.getElementById("switchAuthText");
+        const tenantForm = document.getElementById("tenantForm");
+        const tenantListDiv = document.getElementById("tenantList");
 
-    window.onload = () => {
-      ensureAllMonths();
-      renderTenants();
-    };
-  </script>
+        let isLoginMode = true; // True for login, false for signup
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const checkinInput = document.getElementById("checkin");
-      const openCalendar = () => {
-        if (typeof checkinInput.showPicker === 'function') {
-          checkinInput.showPicker();
-        } else {
-          checkinInput.focus();
+        // --- Modal Functions ---
+        function openModal() {
+            loginModal.style.display = "flex";
+            authErrorMessage.textContent = ""; // Clear any previous errors
+            authEmail.value = ""; // Clear inputs
+            authPassword.value = "";
+            setAuthMode(true); // Default to login mode
         }
-      };
-      checkinInput.addEventListener("click", openCalendar);
-      checkinInput.addEventListener("focus", openCalendar);
-    });
-  </script>
-  <footer style="margin-top: 40px; text-align: center; color: #666; font-size: 14px;">
-  <hr style="margin-bottom: 10px;">
-  🛠️ For Support: <a href="tel:+913583355747" style="color: #007bff; text-decoration: none;"><strong>+91 3583 355747</strong></a><br>
-  🔗 <a href="https://xpreview.github.io/tenant/" style="color: #007bff; text-decoration: none; font-weight: bold;">Try Detailed Tenant Page</a>
+
+        function closeModal() {
+            loginModal.style.display = "none";
+        }
+
+        function setAuthMode(isLogin) {
+            isLoginMode = isLogin;
+            modalTitle.textContent = isLoginMode ? "Login" : "Sign Up";
+            authSubmitButton.textContent = isLoginMode ? "Login" : "Sign Up";
+            switchAuthText.innerHTML = isLoginMode
+                ? "Don't have an account? <a onclick='toggleAuthMode()'>Sign Up</a>"
+                : "Already have an account? <a onclick='toggleAuthMode()'>Login</a>";
+        }
+
+        function toggleAuthMode() {
+            setAuthMode(!isLoginMode);
+        }
+
+        async function handleAuthSubmit() {
+            const email = authEmail.value;
+            const password = authPassword.value;
+            authErrorMessage.textContent = ""; // Clear previous error
+
+            if (!email || !password) {
+                authErrorMessage.textContent = "Please enter both email and password.";
+                return;
+            }
+
+            try {
+                if (isLoginMode) {
+                    await auth.signInWithEmailAndPassword(email, password);
+                } else {
+                    await auth.createUserWithEmailAndPassword(email, password);
+                }
+                closeModal(); // Close modal on successful auth
+            } catch (error) {
+                console.error("Auth error:", error.code, error.message);
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        authErrorMessage.textContent = 'Invalid email or password.';
+                        break;
+                    case 'auth/email-already-in-use':
+                        authErrorMessage.textContent = 'Email already in use. Try logging in.';
+                        break;
+                    case 'auth/weak-password':
+                        authErrorMessage.textContent = 'Password should be at least 6 characters.';
+                        break;
+                    default:
+                        authErrorMessage.textContent = 'Authentication failed. Please try again.';
+                }
+            }
+        }
+
+        // --- Firebase Authentication State Listener ---
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                authButton.textContent = "Profile (" + user.email + ")";
+                authButton.onclick = () => {
+                    if (confirm("Are you sure you want to logout?")) {
+                        auth.signOut();
+                    }
+                };
+                tenantForm.style.display = "block"; // Show tenant form
+                tenantListDiv.innerHTML = ""; // Clear login message
+                loadTenants(); // Load tenants for the authenticated user
+            } else {
+                authButton.textContent = "Login";
+                authButton.onclick = openModal;
+                tenantForm.style.display = "none"; // Hide tenant form
+                tenantListDiv.innerHTML = '<p style="text-align: center; margin-top: 50px;">Please log in to manage your tenants.</p>';
+                tenants = []; // Clear local tenants array when logged out
+            }
+        });
+
+        // --- Existing Tenant Management Logic (Adapted for Firestore) ---
+        const form = document.getElementById("tenantForm");
+        const tenantList = document.getElementById("tenantList"); // This will now be tenantListDiv
+
+        let tenants = []; // Global array to hold tenant data
+
+        // Function to save data to Firestore
+        async function saveData() {
+            if (!currentUser) return; // Only save if a user is logged in
+            try {
+                const userDocRef = db.collection('users').doc(currentUser.uid);
+                await userDocRef.set({ tenants: tenants }); // Store the entire tenants array
+                console.log("Tenant data saved to Firestore!");
+            } catch (error) {
+                console.error("Error saving data to Firestore:", error);
+            }
+        }
+
+        // Function to load data from Firestore
+        async function loadTenants() {
+            if (!currentUser) return;
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists && doc.data().tenants) {
+                    tenants = doc.data().tenants;
+                    console.log("Tenant data loaded from Firestore!");
+                } else {
+                    tenants = []; // No data or no tenants array, initialize empty
+                    console.log("No tenant data found in Firestore for this user.");
+                }
+                ensureAllMonths(); // Ensure all months are covered after loading
+                renderTenants();
+            } catch (error) {
+                console.error("Error loading data from Firestore:", error);
+            }
+        }
+
+        function monthDiff(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            let count = 0;
+            while (true) {
+                const next = new Date(start);
+                next.setMonth(start.getMonth() + count + 1);
+                if (next > end) break;
+                count++;
+            }
+            if (count === 0 && start.toDateString() === end.toDateString()) {
+                return 1;
+            }
+            return count;
+        }
+
+        function formatFullDate(base, offset) {
+            const d = new Date(base);
+            d.setMonth(d.getMonth() + offset + 1);
+            return d.toLocaleDateString("en-IN", { day: '2-digit', month: 'long', year: 'numeric' });
+        }
+
+        function getMonthKey(base, offset) {
+            const d = new Date(base);
+            d.setMonth(d.getMonth() + offset + 1);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        }
+
+        function ensureAllMonths() {
+            const today = new Date();
+            tenants.forEach((tenant) => {
+                if (!tenant.monthlyData) tenant.monthlyData = {};
+                const checkin = new Date(tenant.checkin);
+                const total = monthDiff(checkin, today);
+                for (let i = 0; i < total; i++) {
+                    const key = getMonthKey(checkin, i);
+                    if (!tenant.monthlyData[key]) {
+                        tenant.monthlyData[key] = {
+                            rentPaid: false,
+                            elecStart: "",
+                            elecEnd: "",
+                            elecPaid: false
+                        };
+                    }
+                }
+            });
+            saveData(); // Save updated monthlyData structure to Firestore
+        }
+
+        function renderTenants() {
+            tenantList.innerHTML = ""; // Changed from tenantList to tenantListDiv
+
+            tenants.forEach((tenant, index) => {
+                const div = document.createElement("div");
+                div.style.marginBottom = "30px";
+
+                const checkinDate = new Date(tenant.checkin);
+                const checkinText = checkinDate.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' });
+
+                const title = document.createElement("h3");
+                title.innerHTML = `🏠 ${tenant.name} | Room ${tenant.room}
+                    <button onclick="deleteTenant(${index})" style="margin-left:20px; background:#dc3545; color:white; padding:4px 10px; border:none; border-radius:4px; font-size:12px; cursor:pointer;">Delete</button>`;
+                div.appendChild(title);
+
+                const table = document.createElement("table");
+                const thead = document.createElement("thead");
+                thead.innerHTML = `
+                    <tr>
+                        <th>Month<br><small>(Joined on ${checkinText})</small></th>
+                        <th>Rent Paid?</th>
+                        <th>Previous Unit</th>
+                        <th>Current Unit</th>
+                        <th>Units</th>
+                        <th>Bill<br><small>(₹${tenant.rate}/unit)</small></th>
+                        <th>Unit Bill Paid?</th>
+                        <th>Total Paid?</th>
+                    </tr>`;
+                table.appendChild(thead);
+
+                const tbody = document.createElement("tbody");
+                const checkin = new Date(tenant.checkin);
+                const today = new Date();
+                const totalMonths = monthDiff(checkin, today);
+
+                for (let i = 0; i < totalMonths; i++) {
+                    const key = getMonthKey(checkin, i);
+                    const label = formatFullDate(checkin, i);
+                    const data = tenant.monthlyData[key] || {
+                        rentPaid: false,
+                        elecStart: "",
+                        elecEnd: "",
+                        elecPaid: false
+                    };
+
+                    const start = parseInt(data.elecStart || 0);
+                    const end = parseInt(data.elecEnd || 0);
+                    const units = Math.max(0, end - start);
+                    const bill = units * tenant.rate;
+                    const totalPaid = data.rentPaid && data.elecPaid;
+
+                    let dueText = "";
+                    if (!data.rentPaid) dueText = "Rent Due";
+                    else if (!data.elecPaid) dueText = "Unit Bill Due";
+
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${label}</td>
+                        <td>
+                            <input type="checkbox" ${data.rentPaid ? "checked" : ""}
+                                onchange="togglePaid(${index}, '${key}', 'rentPaid', this.checked)">
+                            <br><small>₹${tenant.rent}</small>
+                        </td>
+                        <td><input type="number" value="${data.elecStart}" data-i="${index}" data-month="${key}" data-key="elecStart" class="elecField"></td>
+                        <td><input type="number" value="${data.elecEnd}" data-i="${index}" data-month="${key}" data-key="elecEnd" class="elecField"></td>
+                        <td>${units}</td>
+                        <td>₹${bill}</td>
+                        <td><input type="checkbox" ${data.elecPaid ? "checked" : ""}
+                                onchange="togglePaid(${index}, '${key}', 'elecPaid', this.checked)"></td>
+                        <td>
+                            <input type="checkbox" ${totalPaid ? "checked" : ""}
+                                onchange="updateTotalPaid(${index}, '${key}', this.checked)">
+                            <br><span class="${dueText ? 'due' : ''}">${dueText}</span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                }
+
+                table.appendChild(tbody);
+                div.appendChild(table);
+                tenantList.appendChild(div); // Changed from tenantList to tenantListDiv
+            });
+
+            bindInstantElectricityInputs();
+        }
+
+        function bindInstantElectricityInputs() {
+            document.querySelectorAll('.elecField').forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const i = parseInt(e.target.dataset.i);
+                    const key = e.target.dataset.key;
+                    const month = e.target.dataset.month;
+                    const value = e.target.value;
+
+                    // Ensure monthlyData and the specific month key exist
+                    if (!tenants[i].monthlyData) {
+                        tenants[i].monthlyData = {};
+                    }
+                    if (!tenants[i].monthlyData[month]) {
+                        tenants[i].monthlyData[month] = {
+                            rentPaid: false,
+                            elecStart: "",
+                            elecEnd: "",
+                            elecPaid: false
+                        };
+                    }
+
+                    tenants[i].monthlyData[month][key] = value;
+                    saveData(); // Save to Firestore on input change
+
+                    const data = tenants[i].monthlyData[month];
+                    const start = parseInt(data.elecStart || 0);
+                    const end = parseInt(data.elecEnd || 0);
+                    const units = Math.max(0, end - start);
+                    const bill = units * tenants[i].rate;
+
+                    const rows = tenantList.querySelectorAll("div")[i].querySelectorAll("tbody tr");
+                    rows.forEach(row => {
+                        if (row.cells[0].innerText === formatFullDate(tenants[i].checkin, getMonthOffset(tenants[i].checkin, month))) {
+                            row.cells[4].innerText = units;
+                            row.cells[5].innerText = `₹${bill}`;
+                        }
+                    });
+                });
+            });
+        }
+
+        function getMonthOffset(checkin, monthKey) {
+            const check = new Date(checkin);
+            const [y, m] = monthKey.split('-').map(Number);
+            const date = new Date(y, m - 1);
+            let offset = 0;
+            while (true) {
+                const next = new Date(check);
+                next.setMonth(check.getMonth() + offset + 1);
+                if (next.getFullYear() === date.getFullYear() && next.getMonth() === date.getMonth()) break;
+                offset++;
+            }
+            return offset;
+        }
+
+        function togglePaid(index, month, key, checked) {
+            // Ensure monthlyData and the specific month key exist
+            if (!tenants[index].monthlyData) {
+                tenants[index].monthlyData = {};
+            }
+            if (!tenants[index].monthlyData[month]) {
+                tenants[index].monthlyData[month] = {
+                    rentPaid: false,
+                    elecStart: "",
+                    elecEnd: "",
+                    elecPaid: false
+                };
+            }
+
+            tenants[index].monthlyData[month][key] = checked;
+            saveData(); // Save to Firestore on checkbox change
+
+            const data = tenants[index].monthlyData[month];
+            const totalPaid = data.rentPaid && data.elecPaid;
+            const dueText = !data.rentPaid ? "Rent Due" : (!data.elecPaid ? "Unit Bill Due" : "");
+
+            const rows = tenantList.querySelectorAll("div")[index].querySelectorAll("tbody tr");
+            rows.forEach(row => {
+                if (row.cells[0].innerText === formatFullDate(tenants[index].checkin, getMonthOffset(tenants[index].checkin, month))) {
+                    row.cells[7].querySelector('input').checked = totalPaid;
+                    row.cells[7].querySelector('span').innerText = dueText;
+                    row.cells[7].querySelector('span').className = dueText ? 'due' : '';
+                }
+            });
+        }
+
+        function updateTotalPaid(index, month, checked) {
+             // Ensure monthlyData and the specific month key exist
+            if (!tenants[index].monthlyData) {
+                tenants[index].monthlyData = {};
+            }
+            if (!tenants[index].monthlyData[month]) {
+                tenants[index].monthlyData[month] = {
+                    rentPaid: false,
+                    elecStart: "",
+                    elecEnd: "",
+                    elecPaid: false
+                };
+            }
+
+            tenants[index].monthlyData[month].rentPaid = checked;
+            tenants[index].monthlyData[month].elecPaid = checked;
+            saveData(); // Save to Firestore
+
+            const rows = tenantList.querySelectorAll("div")[index].querySelectorAll("tbody tr");
+            rows.forEach(row => {
+                if (row.cells[0].innerText === formatFullDate(tenants[index].checkin, getMonthOffset(tenants[index].checkin, month))) {
+                    row.cells[1].querySelector('input').checked = checked;
+                    row.cells[6].querySelector('input').checked = checked;
+                    row.cells[7].querySelector('span').innerText = checked ? "" : "Rent Due";
+                    row.cells[7].querySelector('span').className = checked ? "" : "due";
+                }
+            });
+        }
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                alert("Please log in to add tenants.");
+                return;
+            }
+
+            const checkinValue = document.getElementById("checkin").value;
+            const today = new Date();
+            const checkinDate = new Date(checkinValue);
+            const isToday = checkinDate.toDateString() === today.toDateString();
+
+            const tenant = {
+                id: Date.now(), // Unique ID for Firestore document (optional, but good practice)
+                name: document.getElementById("name").value,
+                room: document.getElementById("room").value,
+                rent: parseInt(document.getElementById("rent").value),
+                rate: parseFloat(document.getElementById("rate").value),
+                checkin: checkinValue,
+                monthlyData: {}
+            };
+
+            if (isToday) {
+                const nextMonth = new Date(checkinDate);
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                const key = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, "0")}`;
+                tenant.monthlyData[key] = {
+                    rentPaid: false,
+                    elecStart: "",
+                    elecEnd: "",
+                    elecPaid: false
+                };
+            }
+
+            tenants.push(tenant);
+            await saveData(); // Save the new tenant to Firestore
+            ensureAllMonths();
+            renderTenants();
+            form.reset();
+        };
+
+        async function deleteTenant(index) {
+            if (!currentUser) {
+                alert("Please log in to delete tenants.");
+                return;
+            }
+            if (confirm("Are you sure you want to delete this tenant?")) {
+                tenants.splice(index, 1);
+                await saveData(); // Save updated tenants array to Firestore
+                renderTenants();
+            }
+        }
+
+        window.onload = () => {
+            // The Firebase auth state listener will handle initial loading of tenants
+            // if a user is already logged in. No need for a separate onload call here.
+        };
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const checkinInput = document.getElementById("checkin");
+            const openCalendar = () => {
+                if (typeof checkinInput.showPicker === 'function') {
+                    checkinInput.showPicker();
+                } else {
+                    checkinInput.focus();
+                }
+            };
+            checkinInput.addEventListener("click", openCalendar);
+            checkinInput.addEventListener("focus", openCalendar);
+        });
+    </script>
+    <footer style="margin-top: 40px; text-align: center; color: #666; font-size: 14px;">
+    <hr style="margin-bottom: 10px;">
+    🛠️ For Support: <a href="tel:+913583355747" style="color: #007bff; text-decoration: none;"><strong>+91 3583 355747</strong></a><br>
+    🔗 <a href="https://xpreview.github.io/tenant/" style="color: #007bff; text-decoration: none; font-weight: bold;">Try Detailed Tenant Page</a>
 </footer>
 </body>
 </html>
