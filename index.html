@@ -239,7 +239,10 @@
             <h2 id="modalTitle">Login</h2>
             <input type="email" id="authEmail" placeholder="Email" required />
             <input type="password" id="authPassword" placeholder="Password" required />
-            <p id="authErrorMessage" class="error-message"></p>
+<p style="text-align: right; font-size: 0.85em; margin-top: -5px;">
+  <a href="#" onclick="forgotPassword()">Forgot Password?</a>
+</p>
+<p id="authErrorMessage" class="error-message"></p>
             <button id="authSubmitButton" onclick="handleAuthSubmit()">Login</button>
             <div class="switch-auth">
                 <p id="switchAuthText">Don't have an account? <a onclick="toggleAuthMode()">Sign Up</a></p>
@@ -340,6 +343,29 @@
                 }
             }
         }
+
+function forgotPassword() {
+    const email = authEmail.value.trim();
+    authErrorMessage.textContent = "";
+
+    if (!email) {
+        authErrorMessage.textContent = "Please enter your email above first.";
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            alert("✖️ This feature is not available for " + email);
+        })
+        .catch((error) => {
+            console.error("Reset password error:", error);
+            if (error.code === 'auth/user-not-found') {
+                authErrorMessage.textContent = "No account found with this email.";
+            } else {
+                authErrorMessage.textContent = "Error sending reset link.";
+            }
+        });
+}
 
         // --- Firebase Authentication State Listener ---
         auth.onAuthStateChanged(user => {
