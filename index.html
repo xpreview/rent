@@ -401,20 +401,24 @@
         }
 
         function monthDiff(startDate, endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            let count = 0;
-            while (true) {
-                const next = new Date(start);
-                next.setMonth(start.getMonth() + count + 1);
-                if (next > end) break;
-                count++;
-            }
-            if (count === 0 && start.toDateString() === end.toDateString()) {
-                return 1;
-            }
-            return count;
-        }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    let count = 0;
+    while (true) {
+        const next = new Date(start);
+        next.setMonth(start.getMonth() + count + 1);
+        if (next > end) break;
+        count++;
+    }
+
+    // ✅ Fix: If still 0 months but same month/year => return 1
+    if (count === 0 && start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+        return 1;
+    }
+
+    return count;
+}
 
         function formatFullDate(base, offset) {
             const d = new Date(base);
