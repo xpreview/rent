@@ -356,7 +356,9 @@ function forgotPassword() {
 
     auth.sendPasswordResetEmail(email)
         .then(() => {
-            alert("If account exist, The Reset link already sent to your email " + email);
+            alert("If the account exists, the reset link has been sent to your email: " +
+      email +
+      ". Please also check your Spam folder.");
         })
         .catch((error) => {
             console.error("Reset password error:", error);
