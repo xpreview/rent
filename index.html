@@ -254,13 +254,14 @@
     <script>
         // Your Firebase Configuration (replace with your actual config)
         const firebaseConfig = {
-            apiKey: "AIzaSyDYJvM_AVB-qLOE4-IqndoiSsB5Rg4dWqU",
-            authDomain: "roomrentsite.firebaseapp.com",
-            projectId: "roomrentsite",
-            storageBucket: "roomrentsite.firebasestorage.app",
-            messagingSenderId: "57419316279",
-            appId: "1:57419316279:web:91d8086985f625410c93b2"
-        };
+  apiKey: "AIzaSyCpzrCiw_FTJS0ycbohIQD22Rz52OeConI",
+  authDomain: "roomrentsite-a2527.firebaseapp.com",
+  projectId: "roomrentsite-a2527",
+  storageBucket: "roomrentsite-a2527.firebasestorage.app",
+  messagingSenderId: "29657167021",
+  appId: "1:29657167021:web:3175449c977dbada748224",
+  measurementId: "G-MZ3MT4PT76"
+};
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -355,7 +356,7 @@ function forgotPassword() {
 
     auth.sendPasswordResetEmail(email)
         .then(() => {
-            alert("✖️ This feature is not available for " + email);
+            alert("If account exist, The Reset link already sent to your email " + email);
         })
         .catch((error) => {
             console.error("Reset password error:", error);
@@ -755,7 +756,7 @@ function forgotPassword() {
     </script>
     <footer style="margin-top: 40px; text-align: center; color: #666; font-size: 14px;">
     <hr style="margin-bottom: 10px;">
-    🔗 <a href="https://xpreview.github.io/tenant/" style="color: #007bff; text-decoration: none; font-weight: bold;">Try Detailed Tenant Page</a>
+    🔗 <a href="https://xpreview.github.io/tenant/" style="color: #007bff; text-decoration: none; font-weight: bold;">Try Detailed Tenant Page (Offline)</a>
 </footer>
 </body>
 </html>
